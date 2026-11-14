@@ -17,7 +17,7 @@
             <div class="main-body">
                 <!-- Thanh điều hướng & chọn nhanh kênh -->
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm">
-                    <a href="Event_Schedule_list_edited.html" class="btn btn-outline-primary btn-sm">
+                    <a href="index.html" class="btn btn-outline-primary btn-sm">
                         <i class="fa fa-arrow-left"></i> Quay lại Bảng xếp hạng
                     </a>
                     <div class="d-flex align-items-center mt-2 mt-sm-0">
@@ -53,7 +53,7 @@
                                         <a id="channel-youtube-btn" href="https://youtube.com/@MrBeast" target="_blank" rel="noopener noreferrer" class="btn btn-danger">
                                             <i class="fa fa-youtube-play"></i> YouTube Channel
                                         </a>
-                                        <a href="Event_Schedule_list_edited.html" class="btn btn-outline-primary">
+                                        <a href="index.html" class="btn btn-outline-primary">
                                             Danh sách
                                         </a>
                                     </div>
@@ -220,19 +220,27 @@
         </style>
 
         <script src="channels-data.js"></script>
+        <script src="supabase-client.js"></script>
         <script type="text/javascript">
             (function () {
                 const DEFAULT_AVATAR = 'img/channel/500x500/default-channel-thumbnail.jpg';
                 const DEFAULT_BANNER = 'img/channel/banner/default-channel-banner.jpg';
+                let channelsList = (typeof CHANNELS_DATA !== 'undefined' && Array.isArray(CHANNELS_DATA)) ? CHANNELS_DATA.slice() : [];
 
-                // Sắp xếp để tính thứ hạng theo số lượng subscribers giảm dần
-                const sortedBySub = CHANNELS_DATA.slice().sort(function (a, b) {
-                    return b.subscribers - a.subscribers;
-                });
-                const maxSub = sortedBySub.length > 0 ? sortedBySub[0].subscribers : 1;
+                let sortedBySub = [];
+                let maxSub = 1;
+
+                function updateSortedList() {
+                    sortedBySub = channelsList.slice().sort(function (a, b) {
+                        return (b.subscribers || 0) - (a.subscribers || 0);
+                    });
+                    maxSub = sortedBySub.length > 0 ? (sortedBySub[0].subscribers || 1) : 1;
+                }
+
+                updateSortedList();
 
                 function getChannelById(id) {
-                    return CHANNELS_DATA.find(function (c) { return c.id === id; }) || sortedBySub[0];
+                    return channelsList.find(function (c) { return c.id === id; }) || sortedBySub[0] || {};
                 }
 
                 function populateSelect(currentId) {
@@ -330,9 +338,26 @@
                 }
 
                 const params = new URLSearchParams(window.location.search);
-                const initialId = params.get('id') || sortedBySub[0].id;
-                populateSelect(initialId);
-                renderProfile(initialId);
+                const initialId = params.get('id') || (sortedBySub[0] ? sortedBySub[0].id : null);
+                if (initialId) {
+                    populateSelect(initialId);
+                    renderProfile(initialId);
+                }
+
+                // Nạp dữ liệu Live thời gian thực từ Supabase
+                if (typeof fetchChannelsFromSupabase === 'function') {
+                    fetchChannelsFromSupabase().then(function (result) {
+                        if (result && Array.isArray(result.data) && result.data.length > 0) {
+                            channelsList = result.data;
+                            updateSortedList();
+                            const currentId = new URLSearchParams(window.location.search).get('id') || sortedBySub[0].id;
+                            populateSelect(currentId);
+                            renderProfile(currentId);
+                        }
+                    }).catch(function (e) {
+                        console.warn('Lỗi fetch Supabase trong profile:', e);
+                    });
+                }
             })();
         </script>
     </div>

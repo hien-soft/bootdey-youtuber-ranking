@@ -1,0 +1,26 @@
+name: Daily YouTube Channels Statistics Sync
+
+on:
+  schedule:
+    # Chạy tự động lúc 00:00 UTC (07:00 sáng giờ VN) mỗi ngày
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Cho phép bấm chạy thủ công trên GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run YouTube Channels Sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://hrntvsgqvkdgxmddfrdq.supabase.co' }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || 'sb_publishable_nWb75GYTqTBaTbzM66ooyA_A1-ZqSAr' }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'AIzaSyCoccJ_YSStOgdLxct49Td3PA9z6e4aJ_A' }}
+        run: node sync-channels.js

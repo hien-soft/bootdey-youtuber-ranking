@@ -1,0 +1,54 @@
+git clone https://github.com/HaiNV18/vibe_viethai.git
+YouTube Ranking https://github.com/HaiNV18/bootdey-youtuber-ranking.git
+
+https://meet.google.com/mym-pjid-cet
+
+=================================================
+Bước 1: clone source youtube ranking
+
+Bước 2: tạo database trên supabase từ file .SQL
+
+Bước 3: dùng Antigravity connect đến Supabase
+
+Bước 4: tạo API tự động cập nhật số subcribe, số video
+
+Bước 5: cho API đó lên Cronjob để tự động cập nhật mỗi ngày
+
+=========================
+
+
+Tôi đã tạo file supabase.txt lưu cấu hình Supabase
+Hãy connect project này với Supabase.
+Table channels tôi cũng đã tạo trên Supabase.
+
+
+Tôi muốn tạo API tự động cập nhật các cột trong database.
+Nguồn lấy từ API của YouTube. Tôi để trong file youtube.txt
+subscribers
+subscribers_formatted
+videos_count
+view_count
+
+
+=========================
+Tôi đang gặp lỗi trong module Danh Sách Sản Phẩm. Đây là mô tả:
+- Điều xảy ra: tổng tiền hiển thị sai khi có giảm giá
+- Điều đáng lẽ đúng: tổng tiền phải trừ đúng % giảm giá
+- Các bước tái hiện: 
+Bước 1: thêm sản phẩm A
+Bước 2: nhập số lượng 12
+Bước 3: áp mã giảm giá
+
+Đây là toàn bộ code liên quan đến module này: [dán code, dán hình]
+Hãy phân tích nguyên nhân trước, giải thích ngắn gọn, rồi mới đề xuất cách sửa.
+
+Problem: vấn đề gì
+Expect (mong muốn): kết quả mong muốn
+Step by step: tái hiện lỗi
+
+Bước 1: click vào nút nào 
+Bước 2: nhập cái gì
+....
+
+======
+Hãy sửa file/folder nào đó, giữ nguyên các file/folder khác

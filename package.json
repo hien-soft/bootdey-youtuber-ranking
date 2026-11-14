@@ -1,0 +1,23 @@
+{
+  "name": "bootdey-youtuber-ranking",
+  "version": "1.0.0",
+  "description": "Tự động cập nhật số liệu YouTube Channels vào Supabase Database",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sync": "node sync-channels.js",
+    "seed": "node seed-to-supabase.js",
+    "cron:windows": "powershell -ExecutionPolicy Bypass -File setup-cron-windows.ps1",
+    "test": "node test-supabase.js",
+    "test:supabase": "node test-supabase.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "youtube-api",
+    "supabase",
+    "channels-ranking",
+    "cronjob"
+  ],
+  "author": "",
+  "license": "ISC"
+}

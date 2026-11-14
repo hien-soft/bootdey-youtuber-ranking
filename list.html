@@ -21,7 +21,7 @@
                             <h2 id="ranking-table-title">SUBSCRIBED YOUTUBE CHANNELS RANKING</h2>
                         </div>
                         <p id="channel-summary-text">
-                            Phân trang, mỗi trang 50 kênh &bull; Hiển thị <strong id="total-count">21</strong> kênh từ dữ liệu SQL
+                            Phân trang, mỗi trang 50 kênh &bull; Hiển thị <strong id="total-count">21</strong> kênh &bull; <span id="db-status-badge" class="badge badge-secondary"><i class="fa fa-database"></i> Đang kết nối Supabase...</span>
                         </p>
                     </div>
                 </div>
@@ -443,9 +443,11 @@
     </style>
 
     <script src="channels-data.js"></script>
+    <script src="supabase-client.js"></script>
     <script type="text/javascript">
         (function () {
             const DEFAULT_AVATAR = 'img/channel/500x500/default-channel-thumbnail.jpg';
+            let channelsList = (typeof CHANNELS_DATA !== 'undefined' && Array.isArray(CHANNELS_DATA)) ? CHANNELS_DATA.slice() : [];
 
             // Ảnh đại diện cho từng nhóm danh mục
             const CATEGORY_META = {
@@ -467,8 +469,8 @@
             }
 
             function renderGroupCategories(activeCategory) {
-                const counts = { 'ALL': CHANNELS_DATA.length };
-                CHANNELS_DATA.forEach(function (ch) {
+                const counts = { 'ALL': channelsList.length };
+                channelsList.forEach(function (ch) {
                     counts[ch.category] = (counts[ch.category] || 0) + 1;
                 });
 
@@ -527,13 +529,13 @@
                 const sortSub = document.getElementById('sort-subscribe').value;
                 const sortDate = document.getElementById('sort-date').value;
 
-                let filtered = CHANNELS_DATA.filter(function (ch) {
-                    const matchCat = (category === 'ALL') || (ch.category.toLowerCase() === category.toLowerCase());
+                let filtered = channelsList.filter(function (ch) {
+                    const matchCat = (category === 'ALL') || (ch.category && ch.category.toLowerCase() === category.toLowerCase());
                     const matchKw = !keyword ||
-                        ch.name.toLowerCase().indexOf(keyword) !== -1 ||
+                        (ch.name && ch.name.toLowerCase().indexOf(keyword) !== -1) ||
                         (ch.handle && ch.handle.toLowerCase().indexOf(keyword) !== -1) ||
-                        ch.category.toLowerCase().indexOf(keyword) !== -1 ||
-                        ch.id.toLowerCase().indexOf(keyword) !== -1;
+                        (ch.category && ch.category.toLowerCase().indexOf(keyword) !== -1) ||
+                        (ch.id && ch.id.toLowerCase().indexOf(keyword) !== -1);
                     return matchCat && matchKw;
                 });
 
@@ -663,9 +665,33 @@
                 applyFiltersAndRender();
             });
 
-            // Khởi tạo giao diện
+            // Khởi tạo giao diện ban đầu từ cache
             renderGroupCategories('ALL');
             applyFiltersAndRender();
+
+            // Nạp dữ liệu Live thời gian thực từ Supabase
+            if (typeof fetchChannelsFromSupabase === 'function') {
+                fetchChannelsFromSupabase().then(function (result) {
+                    if (result && Array.isArray(result.data) && result.data.length > 0) {
+                        channelsList = result.data;
+                        const badge = document.getElementById('db-status-badge');
+                        if (badge) {
+                            if (result.source === 'supabase') {
+                                badge.className = 'badge badge-success';
+                                badge.innerHTML = '<i class="fa fa-check-circle"></i> Supabase Live (' + channelsList.length + ' kênh)';
+                            } else {
+                                badge.className = 'badge badge-info';
+                                badge.innerHTML = '<i class="fa fa-database"></i> Dữ liệu cục bộ (' + channelsList.length + ' kênh)';
+                            }
+                        }
+                        const activeCat = document.getElementById('channel-category').value || 'ALL';
+                        renderGroupCategories(activeCat);
+                        applyFiltersAndRender();
+                    }
+                }).catch(function (e) {
+                    console.warn('Lỗi fetch Supabase:', e);
+                });
+            }
         })();
     </script>
 </body>
