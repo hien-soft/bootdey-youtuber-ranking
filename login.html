@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <title>Xác thực & Phân quyền - YouTube Ranking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <!-- Supabase JS Client SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+                <!-- Header Brand -->
+                <div class="text-center mb-4">
+                    <a href="index.html" class="text-decoration-none">
+                        <h2 class="font-weight-bold text-primary mb-1">
+                            <i class="fa fa-youtube-play text-danger"></i> YOUTUBE RANKING
+                        </h2>
+                    </a>
+                    <p class="text-muted">Hệ thống Phân Quyền (RBAC) & Quản lý Truy cập</p>
+                </div>
+
+                <!-- Alert Messages -->
+                <div id="auth-alert" class="alert d-none" role="alert"></div>
+
+                <!-- Auth Card -->
+                <div class="card shadow-sm border-0 rounded-lg">
+                    <!-- Navigation Tabs -->
+                    <div class="card-header bg-white border-bottom-0 pb-0">
+                        <ul class="nav nav-tabs card-header-tabs" id="authTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active font-weight-bold" id="tab-login-btn" data-toggle="tab" href="#tab-login" role="tab">
+                                    <i class="fa fa-sign-in"></i> Đăng Nhập
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link font-weight-bold" id="tab-register-btn" data-toggle="tab" href="#tab-register" role="tab">
+                                    <i class="fa fa-user-plus"></i> Đăng Ký
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link font-weight-bold" id="tab-forgot-btn" data-toggle="tab" href="#tab-forgot" role="tab">
+                                    <i class="fa fa-key"></i> Quên Mật Khẩu
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="authTabContent">
+
+                            <!-- TAB 1: ĐĂNG NHẬP -->
+                            <div class="tab-pane fade show active" id="tab-login" role="tabpanel">
+                                <form id="form-login" onsubmit="return false;">
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Địa chỉ Email <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            </div>
+                                            <input type="email" id="login-email" class="form-control" placeholder="name@example.com" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <label class="font-weight-bold text-secondary">Mật khẩu <span class="text-danger">*</span></label>
+                                            <a href="#" class="small text-primary" id="link-goto-forgot">Quên mật khẩu?</a>
+                                        </div>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            </div>
+                                            <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" id="btn-submit-login" class="btn btn-primary btn-block py-2 font-weight-bold">
+                                        <i class="fa fa-sign-in"></i> Đăng Nhập
+                                    </button>
+                                </form>
+
+                                <hr class="my-4">
+                                <div class="text-center">
+                                    <p class="small text-muted mb-2">Đăng nhập nhanh để thử nghiệm Phân Quyền (Demo):</p>
+                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                        <button type="button" class="btn btn-outline-danger demo-login-btn" data-role="admin">
+                                            <i class="fa fa-shield"></i> Admin
+                                        </button>
+                                        <button type="button" class="btn btn-outline-success demo-login-btn" data-role="editor">
+                                            <i class="fa fa-pencil"></i> Editor
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info demo-login-btn" data-role="viewer">
+                                            <i class="fa fa-user"></i> Viewer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: ĐĂNG KÝ -->
+                            <div class="tab-pane fade" id="tab-register" role="tabpanel">
+                                <form id="form-register" onsubmit="return false;">
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Họ và Tên</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                            </div>
+                                            <input type="text" id="reg-fullname" class="form-control" placeholder="Nguyễn Văn A">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Email <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            </div>
+                                            <input type="email" id="reg-email" class="form-control" placeholder="name@example.com" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Mật khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            </div>
+                                            <input type="password" id="reg-password" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-check-circle"></i></span>
+                                            </div>
+                                            <input type="password" id="reg-confirm-password" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" id="btn-submit-register" class="btn btn-success btn-block py-2 font-weight-bold">
+                                        <i class="fa fa-user-plus"></i> Tạo Tài Khoản
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- TAB 3: QUÊN MẬT KHẨU -->
+                            <div class="tab-pane fade" id="tab-forgot" role="tabpanel">
+                                <div class="text-center mb-3">
+                                    <i class="fa fa-lock fa-3x text-warning mb-2"></i>
+                                    <h5 class="font-weight-bold">Quên Mật Khẩu?</h5>
+                                    <p class="small text-muted">Nhập email đã đăng ký tài khoản. Hệ thống Supabase sẽ gửi liên kết để bạn đặt lại mật khẩu an toàn.</p>
+                                </div>
+                                <form id="form-forgot" onsubmit="return false;">
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Địa chỉ Email <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            </div>
+                                            <input type="email" id="forgot-email" class="form-control" placeholder="name@example.com" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" id="btn-submit-forgot" class="btn btn-warning btn-block py-2 font-weight-bold text-dark">
+                                        <i class="fa fa-paper-plane"></i> Gửi Liên Kết Đặt Lại Mật Khẩu
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- TAB 4: ĐẶT LẠI MẬT KHẨU MỚI (KHI MỞ TỪ LINK EMAIL) -->
+                            <div class="tab-pane fade" id="tab-reset-password" role="tabpanel">
+                                <div class="text-center mb-3">
+                                    <i class="fa fa-shield fa-3x text-success mb-2"></i>
+                                    <h5 class="font-weight-bold">Đặt Lại Mật Khẩu Mới</h5>
+                                    <p class="small text-muted">Vui lòng nhập mật khẩu mới cho tài khoản của bạn.</p>
+                                </div>
+                                <form id="form-reset" onsubmit="return false;">
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Mật khẩu mới <span class="text-danger">*</span></label>
+                                        <input type="password" id="reset-new-password" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-weight-bold text-secondary">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                        <input type="password" id="reset-confirm-password" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                                    </div>
+                                    <button type="submit" id="btn-submit-reset" class="btn btn-primary btn-block py-2 font-weight-bold">
+                                        <i class="fa fa-save"></i> Cập Nhật Mật Khẩu
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="text-center mt-4">
+                    <a href="index.html" class="text-secondary font-weight-bold">
+                        <i class="fa fa-arrow-left"></i> Quay lại Bảng xếp hạng
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            const alertBox = document.getElementById('auth-alert');
+
+            function showAlert(type, msg) {
+                alertBox.className = 'alert alert-' + type;
+                alertBox.innerHTML = msg;
+                alertBox.classList.remove('d-none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function clearAlert() {
+                alertBox.classList.add('d-none');
+            }
+
+            // Chuyển sang tab Quên mật khẩu khi bấm link
+            document.getElementById('link-goto-forgot').addEventListener('click', function (e) {
+                e.preventDefault();
+                $('#tab-forgot-btn').tab('show');
+            });
+
+            // 1. Xử lý Đăng Nhập
+            document.getElementById('form-login').addEventListener('submit', async function () {
+                clearAlert();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const btn = document.getElementById('btn-submit-login');
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang xác thực...';
+
+                try {
+                    await authSignIn(email, password);
+                    showAlert('success', '🎉 Đăng nhập thành công! Đang chuyển hướng về trang chủ...');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+                } catch (err) {
+                    showAlert('danger', '❌ Đăng nhập thất bại: ' + (err.message || 'Sai email hoặc mật khẩu.'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-sign-in"></i> Đăng Nhập';
+                }
+            });
+
+            // 2. Xử lý Đăng Ký
+            document.getElementById('form-register').addEventListener('submit', async function () {
+                clearAlert();
+                const fullName = document.getElementById('reg-fullname').value;
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const confirmPassword = document.getElementById('reg-confirm-password').value;
+                const btn = document.getElementById('btn-submit-register');
+
+                if (password !== confirmPassword) {
+                    showAlert('warning', '⚠️ Mật khẩu xác nhận không khớp!');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang tạo tài khoản...';
+
+                try {
+                    await authSignUp(email, password, fullName);
+                    showAlert('success', '🎉 Tạo tài khoản thành công! Vui lòng kiểm tra email để xác nhận (nếu Supabase bật email confirmation) hoặc đăng nhập ngay.');
+                    $('#tab-login-btn').tab('show');
+                    document.getElementById('login-email').value = email;
+                } catch (err) {
+                    showAlert('danger', '❌ Đăng ký thất bại: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-user-plus"></i> Tạo Tài Khoản';
+                }
+            });
+
+            // 3. Xử lý Quên Mật Khẩu
+            document.getElementById('form-forgot').addEventListener('submit', async function () {
+                clearAlert();
+                const email = document.getElementById('forgot-email').value;
+                const btn = document.getElementById('btn-submit-forgot');
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi yêu cầu...';
+
+                try {
+                    await authForgotPassword(email);
+                    showAlert('success', '✅ Đã gửi email đặt lại mật khẩu đến <strong>' + email + '</strong>! Vui lòng kiểm tra hộp thư (cả mục Spam/Junk) để tạo mật khẩu mới.');
+                } catch (err) {
+                    showAlert('danger', '❌ Lỗi gửi email quên mật khẩu: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi Liên Kết Đặt Lại Mật Khẩu';
+                }
+            });
+
+            // 4. Xử lý Đặt lại Mật khẩu mới (nếu URL có tham số type=reset)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'reset' || window.location.hash.includes('type=recovery')) {
+                $('#authTabs').addClass('d-none');
+                $('#authTabContent .tab-pane').removeClass('show active');
+                $('#tab-reset-password').addClass('show active');
+
+                document.getElementById('form-reset').addEventListener('submit', async function () {
+                    clearAlert();
+                    const p1 = document.getElementById('reset-new-password').value;
+                    const p2 = document.getElementById('reset-confirm-password').value;
+                    const btn = document.getElementById('btn-submit-reset');
+
+                    if (p1 !== p2) {
+                        showAlert('warning', '⚠️ Mật khẩu xác nhận không khớp!');
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang cập nhật...';
+
+                    try {
+                        await authUpdatePassword(p1);
+                        showAlert('success', '🎉 Đặt lại mật khẩu thành công! Đang chuyển hướng...');
+                        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                    } catch (err) {
+                        showAlert('danger', '❌ Lỗi cập nhật mật khẩu: ' + err.message);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa fa-save"></i> Cập Nhật Mật Khẩu';
+                    }
+                });
+            }
+
+            // 5. Nút Demo Phân Quyền Nhanh (Admin, Editor, Viewer)
+            document.querySelectorAll('.demo-login-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const role = this.getAttribute('data-role');
+                    const demoUser = {
+                        id: 'demo-' + role + '-id',
+                        email: role + '@ranking.demo',
+                        fullName: role === 'admin' ? 'Quản Trị Viên (Demo)' : (role === 'editor' ? 'Biên Tập Viên (Demo)' : 'Người Xem (Demo)'),
+                        role: role
+                    };
+                    localStorage.setItem('local_demo_user', JSON.stringify(demoUser));
+                    showAlert('success', `🎉 Đã đăng nhập thử nghiệm với vai trò: <strong>${role.toUpperCase()}</strong>! Đang chuyển hướng...`);
+                    setTimeout(() => { window.location.href = 'index.html'; }, 800);
+                });
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
